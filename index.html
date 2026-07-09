@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>قائمة مهامي المبسطة</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* إعدادات التصميم العام */
+        :root {
+            --bg-color: #f8fafc;
+            --card-color: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --danger-color: #ef4444;
+            --danger-hover: #dc2626;
+            --border-color: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+
+        /* حاوية التطبيق الرئيسية */
+        .app-container {
+            background-color: var(--card-color);
+            width: 100%;
+            max-width: 500px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            padding: 1.5rem;
+        }
+
+        header h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            color: var(--primary-color);
+        }
+
+        /* نموذج إضافة مهمة جديدة */
+        .todo-form {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .todo-input {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .todo-input:focus {
+            border-color: var(--primary-color);
+        }
+
+        .add-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .add-btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        /* قائمة المهام */
+        .todo-list {
+            list-style: none;
+        }
+
+        .todo-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.85rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+            transition: background-color 0.2s;
+        }
+
+        .todo-item:last-child {
+            border-bottom: none;
+        }
+
+        .todo-content {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex: 1;
+            cursor: pointer;
+        }
+
+        /* تعديل شكل صندوق الاختيار الافتراضي */
+        .todo-checkbox {
+            width: 1.2rem;
+            height: 1.2rem;
+            accent-color: var(--primary-color);
+            cursor: pointer;
+        }
+
+        .todo-text {
+            font-size: 1rem;
+            word-break: break-word;
+            transition: color 0.2s, text-decoration 0.2s;
+        }
+
+        /* حالة المهمة المنجزة */
+        .completed .todo-text {
+            text-decoration: line-through;
+            color: var(--text-muted);
+        }
+
+        /* زر الحذف */
+        .delete-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            transition: color 0.2s, background-color 0.2s;
+        }
+
+        .delete-btn:hover {
+            color: var(--danger-color);
+            background-color: #fef2f2;
+        }
+
+        /* رسالة القائمة الفارغة */
+        .empty-state {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            padding: 1.5rem 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <header>
+            <h1>قائمة مهامي</h1>
+        </header>
+
+        <form class="todo-form" id="todoForm">
+            <input type="text" id="todoInput" class="todo-input" placeholder="اكتب مهمة جديدة..." required autocomplete="off">
+            <button type="submit" class="add-btn">إضافة</button>
+        </form>
+
+        <ul class="todo-list" id="todoList"></ul>
+    </div>
+
+    <script>
+        // العناصر من الواجهة
+        const todoForm = document.getElementById('todoForm');
+        const todoInput = document.getElementById('todoInput');
+        const todoList = document.getElementById('todoList');
+
+        // مصفوفة تخزين المهام (تحمل البيانات من LocalStorage أولاً أو تبدأ فارغة)
+        let todos = JSON.parse(localStorage.getItem('todos')) || [];
+
+        // دالة لحفظ التغييرات في LocalStorage
+        function saveToLocalStorage() {
+            localStorage.setItem('todos', JSON.stringify(todos));
+        }
+
+        // دالة لعرض المهام في الواجهة
+        function renderTodos() {
+            // مسح القائمة الحالية قبل إعادة البناء
+            todoList.innerHTML = '';
+
+            // إذا كانت القائمة فارغة، اعرض رسالة توضيحية
+            if (todos.length === 0) {
+                todoList.innerHTML = '<li class="empty-state">لا توجد مهام حالياً. أضف مهمة للبدء!</li>';
+                return;
+            }
+
+            // بناء عناصر القائمة
+            todos.forEach((todo) => {
+                const li = document.createElement('li');
+                li.className = `todo-item ${todo.completed ? 'completed' : ''}`;
+
+                li.innerHTML = `
+                    <div class="todo-content" onclick="toggleTodo(${todo.id})">
+                        <input type="checkbox" class="todo-checkbox" ${todo.completed ? 'checked' : ''}>
+                        <span class="todo-text">${todo.text}</span>
+                    </div>
+                    <button class="delete-btn" onclick="deleteTodo(${todo.id})">حذف</button>
+                `;
+
+                todoList.appendChild(li);
+            });
+        }
+
+        // ميزة 1: إضافة مهمة نصية جديدة
+        todoForm.addEventListener('submit', (e) => {
+            e.preventDefault(); // منع إعادة تحميل الصفحة عند الإرسال
+
+            const text = todoInput.value.trim();
+            if (!text) return;
+
+            const newTodo = {
+                id: Date.now(), // معرف فريد يعتمد على الوقت
+                text: text,
+                completed: false
+            };
+
+            todos.push(newTodo);
+            saveToLocalStorage();
+            renderTodos();
+
+            todoInput.value = ''; // تفريغ الحقل
+            todoInput.focus();
+        });
+
+        // ميزة 3: تحديد مهمة كمنجزة أو العكس
+        window.toggleTodo = function(id) {
+            todos = todos.map(todo => {
+                if (todo.id === id) {
+                    return { ...todo, completed: !todo.completed };
+                }
+                return todo;
+            });
+            saveToLocalStorage();
+            renderTodos();
+        };
+
+        // ميزة 4: حذف مهمة
+        window.deleteTodo = function(id) {
+            todos = todos.filter(todo => todo.id !== id);
+            saveToLocalStorage();
+            renderTodos();
+        };
+
+        // ميزة 2 + 5: العرض الأولي عند فتح التطبيق وجلب البيانات من الذاكرة
+        renderTodos();
+    </script>
+</body>
+</html>
