@@ -3,166 +3,218 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>قائمة مهامي المبسطة</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
-    
+    <title>إدارة المهام | Task Manager</title>
     <style>
-        /* إعدادات التصميم العام */
-        :root {
-            --bg-color: #f8fafc;
-            --card-color: #ffffff;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-            --primary-color: #4f46e5;
-            --primary-hover: #4338ca;
-            --danger-color: #ef4444;
-            --danger-hover: #dc2626;
-            --border-color: #e2e8f0;
+        /* --- استدعاء خط Cairo المحلي --- */
+        @font-face {
+            font-family: 'Cairo';
+            src: url('Cairo.ttf') format('truetype');
+            font-weight: 100 900; /* يدعم جميع الأوزان إذا كان الملف متغير Variable */
+            font-style: normal;
+            font-display: swap;
         }
 
+        /* --- المتغيرات ولوحة الألوان --- */
+        :root {
+            --bg-primary: #f4f7f6;
+            --bg-card: #ffffff;
+            --text-main: #333333;
+            --text-muted: #666666;
+            --accent-color: #4a90e2;
+            --accent-hover: #357abd;
+            --danger-color: #e74c3c;
+            --danger-hover: #c0392b;
+            --success-color: #2ecc71;
+            --border-color: #e0e0e0;
+            --shadow: 0 4px 6px rgba(0,0,0,0.05);
+            --radius: 8px;
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #121212;
+            --bg-card: #1e1e1e;
+            --text-main: #f5f5f5;
+            --text-muted: #b0b0b0;
+            --accent-color: #3782df;
+            --accent-hover: #4a90e2;
+            --border-color: #333333;
+            --shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        /* --- التنسيقات العامة --- */
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Cairo', sans-serif;
+            /* تطبيق خط Cairo كخط أساسي مع بدائل احتياطية */
+            font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: background-color 0.3s, color 0.3s;
         }
 
         body {
-            background-color: var(--bg-color);
+            background-color: var(--bg-primary);
             color: var(--text-main);
             display: flex;
             justify-content: center;
-            align-items: flex-start;
+            align-items: center;
             min-height: 100vh;
-            padding: 2rem 1rem;
+            padding: 20px;
         }
 
-        /* حاوية التطبيق الرئيسية */
         .app-container {
-            background-color: var(--card-color);
+            background-color: var(--bg-card);
             width: 100%;
             max-width: 500px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-            padding: 1.5rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 25px;
+            border: 1px solid var(--border-color);
+        }
+
+        /* --- الهيدر وأزرار التحكم --- */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
         }
 
         header h1 {
             font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 1.5rem;
-            text-align: center;
-            color: var(--primary-color);
+            font-weight: 700; /* خط Cairo يبدو رائعاً بوزن عريض في العناوين */
         }
 
-        /* نموذج إضافة مهمة جديدة */
-        .todo-form {
+        .controls {
             display: flex;
-            gap: 0.5rem;
-            margin-bottom: 1.5rem;
+            gap: 10px;
         }
 
-        .todo-input {
-            flex: 1;
-            padding: 0.75rem 1rem;
-            border: 2px solid var(--border-color);
-            border-radius: 8px;
-            font-size: 0.95rem;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-
-        .todo-input:focus {
-            border-color: var(--primary-color);
-        }
-
-        .add-btn {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 0.75rem 1.25rem;
-            border-radius: 8px;
-            font-weight: 600;
+        .btn-icon {
+            background: none;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 8px 12px;
+            border-radius: var(--radius);
             cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        .add-btn:hover {
-            background-color: var(--primary-hover);
-        }
-
-        /* قائمة المهام */
-        .todo-list {
-            list-style: none;
-        }
-
-        .todo-item {
+            font-size: 0.9rem;
+            font-weight: 600;
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            padding: 0.85rem 1rem;
-            border-bottom: 1px solid var(--border-color);
-            transition: background-color 0.2s;
+            justify-content: center;
         }
 
-        .todo-item:last-child {
+        .btn-icon:hover {
+            background-color: var(--border-color);
+        }
+
+        /* --- نموذج إضافة مهمة --- */
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .input-group input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            background-color: var(--bg-card);
+            color: var(--text-main);
+            font-size: 1rem;
+            font-family: 'Cairo', sans-serif; /* لضمان تطبيقه داخل المدخلات */
+        }
+
+        .input-group input:focus {
+            outline: 2px solid var(--accent-color);
+        }
+
+        .btn-add {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 0 20px;
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 700;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        .btn-add:hover {
+            background-color: var(--accent-hover);
+        }
+
+        /* --- قائمة المهام --- */
+        .task-list {
+            list-style: none;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .task-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            border-bottom: 1px solid var(--border-color);
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .task-item:last-child {
             border-bottom: none;
         }
 
-        .todo-content {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
+        .task-text {
+            cursor: pointer;
             flex: 1;
-            cursor: pointer;
+            word-break: break-all;
+            padding: 0 10px;
+            font-weight: 600;
         }
 
-        /* تعديل شكل صندوق الاختيار الافتراضي */
-        .todo-checkbox {
-            width: 1.2rem;
-            height: 1.2rem;
-            accent-color: var(--primary-color);
-            cursor: pointer;
-        }
-
-        .todo-text {
-            font-size: 1rem;
-            word-break: break-word;
-            transition: color 0.2s, text-decoration 0.2s;
-        }
-
-        /* حالة المهمة المنجزة */
-        .completed .todo-text {
+        .task-item.completed .task-text {
             text-decoration: line-through;
             color: var(--text-muted);
         }
 
-        /* زر الحذف */
-        .delete-btn {
+        .btn-delete {
             background: none;
             border: none;
-            color: var(--text-muted);
+            color: var(--danger-color);
+            cursor: pointer;
+            font-size: 1.1rem;
+            padding: 5px;
+        }
+
+        .btn-delete:hover {
+            color: var(--danger-hover);
+        }
+
+        /* الإحصائيات */
+        .footer-stats {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid var(--border-color);
             font-size: 0.9rem;
             font-weight: 600;
-            cursor: pointer;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            transition: color 0.2s, background-color 0.2s;
-        }
-
-        .delete-btn:hover {
-            color: var(--danger-color);
-            background-color: #fef2f2;
-        }
-
-        /* رسالة القائمة الفارغة */
-        .empty-state {
-            text-align: center;
             color: var(--text-muted);
-            font-size: 0.9rem;
-            padding: 1.5rem 0;
+            text-align: center;
+        }
+
+        /* التجاوب مع الشاشات الصغيرة جداً */
+        @media (max-width: 400px) {
+            .app-container {
+                padding: 15px;
+            }
+            header h1 {
+                font-size: 1.2rem;
+            }
         }
     </style>
 </head>
@@ -170,101 +222,101 @@
 
     <div class="app-container">
         <header>
-            <h1>قائمة مهامي</h1>
+            <h1 id="app-title">إدارة المهام</h1>
+            <div class="controls">
+                <button class="btn-icon" id="theme-toggle" aria-label="Toggle Theme">🌙</button>
+                <button class="btn-icon" id="lang-toggle">EN</button>
+            </div>
         </header>
 
-        <form class="todo-form" id="todoForm">
-            <input type="text" id="todoInput" class="todo-input" placeholder="اكتب مهمة جديدة..." required autocomplete="off">
-            <button type="submit" class="add-btn">إضافة</button>
-        </form>
+        <div class="input-group">
+            <input type="text" id="task-input" placeholder="أضف مهمة جديدة...">
+            <button class="btn-add" id="add-btn">إضافة</button>
+        </div>
 
-        <ul class="todo-list" id="todoList"></ul>
+        <ul class="task-list" id="task-list"></ul>
+
+        <div class="footer-stats" id="footer-stats">
+            لديك <span id="task-count">0</span> مهام متبقية
+        </div>
     </div>
 
     <script>
-        // العناصر من الواجهة
-        const todoForm = document.getElementById('todoForm');
-        const todoInput = document.getElementById('todoInput');
-        const todoList = document.getElementById('todoList');
+        const i18n = {
+            ar: { title: "إدارة المهام", placeholder: "أضف مهمة جديدة...", addBtn: "إضافة", stats: "لديك {count} مهام متبقية" },
+            en: { title: "Task Manager", placeholder: "Add a new task...", addBtn: "Add", stats: "You have {count} tasks left" }
+        };
 
-        // مصفوفة تخزين المهام (تحمل البيانات من LocalStorage أولاً أو تبدأ فارغة)
-        let todos = JSON.parse(localStorage.getItem('todos')) || [];
+        const appTitle = document.getElementById('app-title');
+        const taskInput = document.getElementById('task-input');
+        const addBtn = document.getElementById('add-btn');
+        const taskList = document.getElementById('task-list');
+        const footerStats = document.getElementById('footer-stats');
+        const themeToggle = document.getElementById('theme-toggle');
+        const langToggle = document.getElementById('lang-toggle');
 
-        // دالة لحفظ التغييرات في LocalStorage
-        function saveToLocalStorage() {
-            localStorage.setItem('todos', JSON.stringify(todos));
+        let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+        let currentLang = localStorage.getItem('lang') || 'ar';
+        let currentTheme = localStorage.getItem('theme') || 'light';
+
+        function updateUI() {
+            document.documentElement.lang = currentLang;
+            document.documentElement.dir = currentLang === 'ar' ? 'rtl' : 'ltr';
+            
+            appTitle.textContent = i18n[currentLang].title;
+            taskInput.placeholder = i18n[currentLang].placeholder;
+            addBtn.textContent = i18n[currentLang].addBtn;
+            langToggle.textContent = currentLang === 'ar' ? 'EN' : 'عربي';
+
+            document.documentElement.setAttribute('data-theme', currentTheme);
+            themeToggle.textContent = currentTheme === 'light' ? '🌙' : '☀️';
+
+            renderTasks();
+            
+            localStorage.setItem('lang', currentLang);
+            localStorage.setItem('theme', currentTheme);
+            localStorage.setItem('tasks', JSON.stringify(tasks));
         }
 
-        // دالة لعرض المهام في الواجهة
-        function renderTodos() {
-            // مسح القائمة الحالية قبل إعادة البناء
-            todoList.innerHTML = '';
-
-            // إذا كانت القائمة فارغة، اعرض رسالة توضيحية
-            if (todos.length === 0) {
-                todoList.innerHTML = '<li class="empty-state">لا توجد مهام حالياً. أضف مهمة للبدء!</li>';
-                return;
-            }
-
-            // بناء عناصر القائمة
-            todos.forEach((todo) => {
+        function renderTasks() {
+            taskList.innerHTML = '';
+            tasks.forEach((task, index) => {
                 const li = document.createElement('li');
-                li.className = `todo-item ${todo.completed ? 'completed' : ''}`;
-
+                li.className = `task-item ${task.completed ? 'completed' : ''}`;
                 li.innerHTML = `
-                    <div class="todo-content" onclick="toggleTodo(${todo.id})">
-                        <input type="checkbox" class="todo-checkbox" ${todo.completed ? 'checked' : ''}>
-                        <span class="todo-text">${todo.text}</span>
-                    </div>
-                    <button class="delete-btn" onclick="deleteTodo(${todo.id})">حذف</button>
+                    <span class="task-text" onclick="toggleTask(${index})">${task.text}</span>
+                    <button class="btn-delete" onclick="deleteTask(${index})" aria-label="Delete">🗑️</button>
                 `;
-
-                todoList.appendChild(li);
+                taskList.appendChild(li);
             });
+            const activeTasksCount = tasks.filter(t => !t.completed).length;
+            footerStats.innerHTML = i18n[currentLang].stats.replace('{count}', activeTasksCount);
         }
 
-        // ميزة 1: إضافة مهمة نصية جديدة
-        todoForm.addEventListener('submit', (e) => {
-            e.preventDefault(); // منع إعادة تحميل الصفحة عند الإرسال
+        function addTask() {
+            const text = taskInput.value.trim();
+            if (text === '') return;
+            tasks.push({ text: text, completed: false });
+            taskInput.value = '';
+            updateUI();
+        }
 
-            const text = todoInput.value.trim();
-            if (!text) return;
+        window.toggleTask = function(index) {
+            tasks[index].completed = !tasks[index].completed;
+            updateUI();
+        }
 
-            const newTodo = {
-                id: Date.now(), // معرف فريد يعتمد على الوقت
-                text: text,
-                completed: false
-            };
+        window.deleteTask = function(index) {
+            tasks.splice(index, 1);
+            updateUI();
+        }
 
-            todos.push(newTodo);
-            saveToLocalStorage();
-            renderTodos();
+        addBtn.addEventListener('click', addTask);
+        taskInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') addTask(); });
+        themeToggle.addEventListener('click', () => { currentTheme = currentTheme === 'light' ? 'dark' : 'light'; updateUI(); });
+        langToggle.addEventListener('click', () => { currentLang = currentLang === 'ar' ? 'en' : 'ar'; updateUI(); });
 
-            todoInput.value = ''; // تفريغ الحقل
-            todoInput.focus();
-        });
-
-        // ميزة 3: تحديد مهمة كمنجزة أو العكس
-        window.toggleTodo = function(id) {
-            todos = todos.map(todo => {
-                if (todo.id === id) {
-                    return { ...todo, completed: !todo.completed };
-                }
-                return todo;
-            });
-            saveToLocalStorage();
-            renderTodos();
-        };
-
-        // ميزة 4: حذف مهمة
-        window.deleteTodo = function(id) {
-            todos = todos.filter(todo => todo.id !== id);
-            saveToLocalStorage();
-            renderTodos();
-        };
-
-        // ميزة 2 + 5: العرض الأولي عند فتح التطبيق وجلب البيانات من الذاكرة
-        renderTodos();
+        updateUI();
     </script>
 </body>
 </html>
